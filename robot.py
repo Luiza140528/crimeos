@@ -17,7 +17,8 @@ CONFIG = {
     "TELEGRAM_CHAT_ID": os.getenv("TELEGRAM_CHAT_ID", ""),
     "VOICE_ID_PT": os.getenv("VOICE_ID_PT", "pNInz6obpgDQGcFmaJgB"),
     "VOICE_ID_EN": os.getenv("VOICE_ID_EN", "EXAVITQu4vr4xnSDxMaL"),
-}TEMAS_PT = [
+}
+TEMAS_PT = [
     "Um homem desapareceu e ninguém soube por 20 anos",
     "A mulher que fingiu sua própria morte para escapar",
     "O serial killer que morava ao lado de uma delegacia",
