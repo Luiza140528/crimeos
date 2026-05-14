@@ -84,4 +84,5 @@ def rodar_pipeline(lang="PT"):
 if __name__ == "__main__":
     for lang in ["PT", "EN"]:
         rodar_pipeline(lang)
-        time.sleep(10)
+        time.sleep(10)  
+
