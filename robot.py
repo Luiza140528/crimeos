@@ -36,8 +36,8 @@ TEMAS_EN = [
 ]
 
 def gerar_roteiro(tema, lang="PT"):
-    log.info(f"[1/4] Gerando roteiro: {tema}")
-    system = "Você é roteirista de true crime para YouTube Shorts. Crie um roteiro de 60 segundos sobre o tema. Responda só com o texto da narração, sem explicações."
+    log.info(f"[1/3] Gerando roteiro: {tema}")
+    system = "Voce e roteirista de true crime para YouTube Shorts. Crie um roteiro de 60 segundos sobre o tema. Responda so com o texto da narracao, sem explicacoes."
     resp = requests.post(
         "https://api.anthropic.com/v1/messages",
         headers={"x-api-key": CONFIG["ANTHROPIC_API_KEY"], "anthropic-version": "2023-06-01", "content-type": "application/json"},
@@ -49,7 +49,7 @@ def gerar_roteiro(tema, lang="PT"):
     return texto
 
 def gerar_narracao(texto, lang, output_path):
-    log.info("[2/4] Gerando narração...")
+    log.info("[2/3] Gerando narracao...")
     voice_id = CONFIG["VOICE_ID_PT"] if lang == "PT" else CONFIG["VOICE_ID_EN"]
     resp = requests.post(
         f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}",
@@ -58,11 +58,11 @@ def gerar_narracao(texto, lang, output_path):
         timeout=60,
     )
     Path(output_path).write_bytes(resp.content)
-    log.info("    Narração salva!")
+    log.info("    Narracao salva!")
     return output_path
 
 def enviar_telegram(mensagem):
-    log.info("[3/4] Enviando notificação no Telegram...")
+    log.info("[3/3] Enviando Telegram...")
     token = CONFIG["TELEGRAM_BOT_TOKEN"]
     chat_id = CONFIG["TELEGRAM_CHAT_ID"]
     requests.post(
@@ -70,7 +70,7 @@ def enviar_telegram(mensagem):
         json={"chat_id": chat_id, "text": mensagem},
         timeout=15,
     )
-    log.info("    Notificação enviada!")
+    log.info("    Enviado!")
 
 def rodar_pipeline(lang="PT"):
     log.info(f"\nCrimeOS iniciando [{lang}]...")
@@ -80,9 +80,13 @@ def rodar_pipeline(lang="PT"):
     work_dir = f"/tmp/crimeos_{lang}"
     Path(work_dir).mkdir(parents=True, exist_ok=True)
     audio_path = f"{work_dir}/narracao.mp3"
-    gerar_narracao(roteiro, lang, audio_path)
-    enviar_telegram(f"✅ Roteiro pronto [{lang}]!\n\n📌 {tema}\n\n{roteiro[:300]}...")
-    log.info("Pipeline concluído!")
+    try:
+        gerar_narracao(roteiro, lang, audio_path)
+        enviar_telegram(f"Roteiro pronto [{lang}]!\n\nTema: {tema}\n\n{roteiro[:300]}...\n\nNarracao gerada!")
+    except Exception as e:
+        log.error(f"Erro na narracao: {e}")
+        enviar_telegram(f"Roteiro pronto [{lang}]!\n\nTema: {tema}\n\n{roteiro[:300]}...\n\nErro na narracao: {e}")
+    log.info("Pipeline concluido!")
 
 if __name__ == "__main__":
     for lang in ["PT", "EN"]:
