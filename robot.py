@@ -80,7 +80,8 @@ def gerar_imagem(prompt, output_path):
 def montar_video(audio_path, img_path, output_path):
     log.info("[4/4] Montando video")
     subprocess.run([
-        "ffmpeg", "-y",
+        subprocess.run([
+        ffmpeg_path, "-y",
         "-loop", "1", "-i", img_path,
         "-i", audio_path,
         "-vf", "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920",
