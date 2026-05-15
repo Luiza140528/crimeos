@@ -20,11 +20,11 @@ CONFIG = {
 }
 
 TEMAS_PT = [
-    "Um homem desapareceu e ninguém soube por 20 anos",
-    "A mulher que fingiu sua própria morte para escapar",
+    "Um homem desapareceu e ninguem soube por 20 anos",
+    "A mulher que fingiu sua propria morte para escapar",
     "O serial killer que morava ao lado de uma delegacia",
-    "O crime que ocorreu em plena transmissão ao vivo",
-    "A criança desaparecida que reapareceu 15 anos depois",
+    "O crime que ocorreu em plena transmissao ao vivo",
+    "A crianca desaparecida que reapareceu 15 anos depois",
 ]
 
 TEMAS_EN = [
@@ -36,7 +36,7 @@ TEMAS_EN = [
 ]
 
 def gerar_roteiro(tema, lang="PT"):
-    log.info(f"[1/4] Gerando roteiro: {tema}")
+    log.info("[1/4] Gerando roteiro")
     system = "Voce e roteirista de true crime para YouTube Shorts. Crie um roteiro de 60 segundos sobre o tema. Responda so com o texto da narracao, sem explicacoes."
     resp = requests.post(
         "https://api.anthropic.com/v1/messages",
@@ -45,38 +45,38 @@ def gerar_roteiro(tema, lang="PT"):
         timeout=30,
     )
     texto = resp.json()["content"][0]["text"]
-    log.info("    Roteiro gerado!")
+    log.info("Roteiro gerado!")
     return texto
 
 def gerar_narracao(texto, lang, output_path):
-    log.info("[2/4] Gerando narracao...")
+    log.info("[2/4] Gerando narracao")
     voice_id = CONFIG["VOICE_ID_PT"] if lang == "PT" else CONFIG["VOICE_ID_EN"]
     resp = requests.post(
-        f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}",
+        "https://api.elevenlabs.io/v1/text-to-speech/" + voice_id,
         headers={"xi-api-key": CONFIG["ELEVENLABS_API_KEY"], "Content-Type": "application/json"},
         json={"text": texto, "model_id": "eleven_multilingual_v2", "voice_settings": {"stability": 0.5, "similarity_boost": 0.8}},
         timeout=60,
     )
     Path(output_path).write_bytes(resp.content)
-    log.info("    Narracao salva!")
+    log.info("Narracao salva!")
     return output_path
 
 def gerar_imagem(prompt, output_path):
-    log.info(f"[3/4] Gerando imagem...")
+    log.info("[3/4] Gerando imagem")
     resp = requests.post(
         "https://fal.run/fal-ai/flux/schnell",
-        headers={"Authorization": f"Key {CONFIG['FAL_API_KEY']}", "Content-Type": "application/json"},
-        json={"prompt": f"{prompt}, cinematic dark atmosphere, dramatic lighting, crime scene, 4k", "image_size": "portrait_4_3", "num_inference_steps": 4, "num_images": 1},
+        headers={"Authorization": "Key " + CONFIG["FAL_API_KEY"], "Content-Type": "application/json"},
+        json={"prompt": prompt + ", cinematic dark, dramatic lighting, crime scene, 4k", "image_size": "portrait_4_3", "num_inference_steps": 4, "num_images": 1},
         timeout=60,
     )
     url = resp.json()["images"][0]["url"]
     img = requests.get(url, timeout=30).content
     Path(output_path).write_bytes(img)
-    log.info("    Imagem salva!")
+    log.info("Imagem salva!")
     return output_path
 
 def montar_video(audio_path, img_path, output_path):
-    log.info("[4/4] Montando video...")
+    log.info("[4/4] Montando video")
     subprocess.run([
         "ffmpeg", "-y",
         "-loop", "1", "-i", img_path,
@@ -86,53 +86,61 @@ def montar_video(audio_path, img_path, output_path):
         "-shortest", "-movflags", "+faststart",
         output_path
     ], capture_output=True, check=True)
-    log.info("    Video montado!")
+    log.info("Video montado!")
     return output_path
 
-def enviar_telegram_video(video_path, mensagem):
-    log.info("Enviando video no Telegram...")
+def enviar_video(video_path, mensagem):
+    log.info("Enviando video")
     token = CONFIG["TELEGRAM_BOT_TOKEN"]
     chat_id = CONFIG["TELEGRAM_CHAT_ID"]
     with open(video_path, "rb") as f:
         requests.post(
-            f"https://api.telegram.org/bot{token}/sendVideo",
+            "https://api.telegram.org/bot" + token + "/sendVideo",
             data={"chat_id": chat_id, "caption": mensagem},
             files={"video": f},
             timeout=120,
         )
-    log.info("    Video enviado!")
+    log.info("Video enviado!")
 
-def enviar_telegram(mensagem):
+def enviar_msg(mensagem):
     token = CONFIG["TELEGRAM_BOT_TOKEN"]
     chat_id = CONFIG["TELEGRAM_CHAT_ID"]
     requests.post(
-        f"https://api.telegram.org/bot{token}/sendMessage",
+        "https://api.telegram.org/bot" + token + "/sendMessage",
         json={"chat_id": chat_id, "text": mensagem},
         timeout=15,
     )
 
-def rodar_pipeline(lang="PT"):
-    log.info(f"\nCrimeOS iniciando [{lang}]...")
+def rodar(lang="PT"):
+    log.info("CrimeOS iniciando " + lang)
     temas = TEMAS_PT if lang == "PT" else TEMAS_EN
     tema = random.choice(temas)
-    work_dir = f"/tmp/crimeos_{lang}"
+    work_dir = "/tmp/crimeos_" + lang
     Path(work_dir).mkdir(parents=True, exist_ok=True)
     try:
         roteiro = gerar_roteiro(tema, lang)
-        audio_path = f"{work_dir}/narracao.mp3"
-        gerar_narracao(roteiro, lang, audio_path)
-        img_path = f"{work_dir}/imagem.jpg"
-        gerar_imagem(tema, img_path)
-        video_path = f"{work_dir}/video.mp4"
-        montar_video(audio_path, img_path, video_path)
-        enviar_telegram_video(video_path, f"
-        pronto [{lang}]!\n\nTema: {tema}\n\nResponda SIM para aprovar ou NAO para rejeitar.")
-        log.info("Pipeline concluido!")
+        audio = work_dir + "/audio.mp3"
+        gerar_narracao(roteiro, lang, audio)
+        imagem = work_dir + "/imagem.jpg"
+        gerar_imagem(tema, imagem)
+        video = work_dir + "/video.mp4"
+        montar_video(audio, imagem, video)
+        enviar_video(video, "Video pronto " + lang + "\n\nTema: " + tema)
+        log.info("Concluido!")
     except Exception as e:
-        log.error(f"Erro: {e}")
-        enviar_telegram(f"Erro no pipeline [{lang}]: {e}")
+        log.error("Erro: " + str(e))
+        enviar_msg("Erro " + lang + ": " + str(e))
 
 if __name__ == "__main__":
     for lang in ["PT", "EN"]:
-        rodar_pipeline(lang)
-        time.sleep(10)Video pronto [{lang}]!\n\nTema: {tem
+        rodar(lang)
+        time.sleep(10)
+    
+
+
+
+    
+    
+    
+    
+    
