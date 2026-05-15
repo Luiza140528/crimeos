@@ -5,6 +5,7 @@ import logging
 import requests
 import subprocess
 from pathlib import Path
+os.system("apt-get install -y ffmpeg 2>/dev/null || true")
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 log = logging.getLogger("CrimeOS")
