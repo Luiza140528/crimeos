@@ -138,3 +138,8 @@ def rodar(lang="PT"):
     except Exception as e:
         log.error("Erro: " + str(e))
         enviar_msg("Erro " + lang + ": " + str(e))
+if __name__ == "__main__":
+    while True:
+        rodar("PT")
+        rodar("EN")
+        time.sleep(3600)  # roda a cada 1 hora
