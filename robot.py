@@ -50,14 +50,7 @@ def gerar_roteiro(tema, lang="PT"):
     log.info("Roteiro gerado!")
     return texto
 
-def gerar_narracao(texto, lang, output_path):
-    log.info("[2/4] Gerando narracao")
-    voice_id = CONFIG["VOICE_ID_PT"] if lang == "PT" else CONFIG["VOICE_ID_EN"]
-    resp = requests.post(
-        "https://api.elevenlabs.io/v1/text-to-speech/" + voice_id,
-        headers={"xi-api-key": CONFIG["ELEVENLABS_API_KEY"], "Content-Type": "application/json"},
-        json={"text": texto, "model_id": "eleven_multilingual_v2", "voice_settings": {"stability": 0.5, "similarity_boost": 0.8}},
-        timeout=60,
+
     )
     Path(output_path).write_bytes(resp.content)
     log.info("Narracao salva!")
@@ -68,7 +61,21 @@ def gerar_imagem(prompt, output_path):
     resp = requests.post(
         "https://fal.run/fal-ai/flux/schnell",
         headers={"Authorization": "Key " + CONFIG["FAL_API_KEY"], "Content-Type": "application/json"},
-        json={"prompt": prompt + ", cinematic dark, dramatic lighting, crime scene, 4k", "image_size": "portrait_4_3", "num_inference_steps": 4, "num_images": 1},
+        json={def gerar_narracao(texto, lang, output_path):
+    log.info("[2/4] Gerando narracao")
+    voice_id = CONFIG["VOICE_ID_PT"] if lang == "PT" else CONFIG["VOICE_ID_EN"]
+    resp = requests.post(
+        "https://api.elevenlabs.io/v1/text-to-speech/" + voice_id,
+        headers={"xi-api-key": CONFIG["ELEVENLABS_API_KEY"], "Content-Type": "application/json"},
+        json={"text": texto, "model_id": "eleven_multilingual_v2", "voice_settings": {"stability": 0.5, "similarity_boost": 0.8}},
+        timeout=60,
+    )
+    log.info("ElevenLabs status: " + str(resp.status_code))
+    if resp.status_code != 200:
+        raise Exception("ElevenLabs erro: " + resp.text[:200])
+    Path(output_path).write_bytes(resp.content)
+    log.info("Narracao salva! Tamanho: " + str(len(resp.content)))
+    return output_path"prompt": prompt + ", cinematic dark, dramatic lighting, crime scene, 4k", "image_size": "portrait_4_3", "num_inference_steps": 4, "num_images": 1},
         timeout=60,
     )
     url = resp.json()["images"][0]["url"]
