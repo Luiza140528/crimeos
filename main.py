@@ -1,5 +1,9 @@
+from robot import rodar
+import time
+rodar("PT")
+time.sleep(10)
+rodar("EN")
 
-from robot import rodar_pipeline
 
-rodar_pipeline("PT")
+
 
