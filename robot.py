@@ -18,6 +18,7 @@ CONFIG = {
     "VOICE_ID_PT": os.getenv("VOICE_ID_PT", "pNInz6obpgDQGcFmaJgB"),
     "VOICE_ID_EN": os.getenv("VOICE_ID_EN", "EXAVITQu4vr4xnSDxMaL"),
 }
+
 TEMAS_PT = [
     "Um homem desapareceu e ninguém soube por 20 anos",
     "A mulher que fingiu sua própria morte para escapar",
@@ -36,7 +37,7 @@ TEMAS_EN = [
 
 def gerar_roteiro(tema, lang="PT"):
     log.info(f"[1/4] Gerando roteiro: {tema}")
-    system = f"Você é roteirista de true crime para YouTube Shorts. Crie um roteiro de 60 segundos sobre o tema. Responda só com o texto da narração, sem explicações."
+    system = "Você é roteirista de true crime para YouTube Shorts. Crie um roteiro de 60 segundos sobre o tema. Responda só com o texto da narração, sem explicações."
     resp = requests.post(
         "https://api.anthropic.com/v1/messages",
         headers={"x-api-key": CONFIG["ANTHROPIC_API_KEY"], "anthropic-version": "2023-06-01", "content-type": "application/json"},
@@ -45,7 +46,9 @@ def gerar_roteiro(tema, lang="PT"):
     )
     texto = resp.json()["content"][0]["text"]
     log.info("    Roteiro gerado!")
-    return textodef gerar_narracao(texto, lang, output_path):
+    return texto
+
+def gerar_narracao(texto, lang, output_path):
     log.info("[2/4] Gerando narração...")
     voice_id = CONFIG["VOICE_ID_PT"] if lang == "PT" else CONFIG["VOICE_ID_EN"]
     resp = requests.post(
@@ -84,5 +87,4 @@ def rodar_pipeline(lang="PT"):
 if __name__ == "__main__":
     for lang in ["PT", "EN"]:
         rodar_pipeline(lang)
-        time.sleep(10)  
-
+        time.sleep(10)
