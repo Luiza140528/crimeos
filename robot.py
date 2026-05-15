@@ -127,12 +127,26 @@ def rodar(lang="PT"):
         imagem = work_dir + "/imagem.jpg"
         gerar_imagem(tema, imagem)
         video = work_dir + "/video.mp4"
-        montar_video(audio, imagem, video)
-        enviar_video(video, "Video pronto " + lang + "\n\nTema: " + tema)
+        result = subprocess.run([
+            ffmpeg_path, "-y",
+            "-loop", "1", "-i", imagem,
+            "-i", audio,
+            "-vf", "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920",
+            "-c:v", "libx264", "-preset", "ultrafast",
+            "-c:a", "aac", "-shortest",
+            "-movflags", "+faststart",
+            video
+        ], capture_output=True)
+        if result.returncode != 0:
+            erro = result.stderr.decode()
+            enviar_msg("Erro FFmpeg " + lang + ": " + erro[-500:])
+        else:
+            enviar_video(video, "Video pronto " + lang + "\n\nTema: " + tema)
         log.info("Concluido!")
     except Exception as e:
         log.error("Erro: " + str(e))
         enviar_msg("Erro " + lang + ": " + str(e))
+        
 
 if __name__ == "__main__":
     for lang in ["PT", "EN"]:
