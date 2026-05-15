@@ -125,4 +125,14 @@ def rodar_pipeline(lang="PT"):
         gerar_imagem(tema, img_path)
         video_path = f"{work_dir}/video.mp4"
         montar_video(audio_path, img_path, video_path)
-        enviar_telegram_video(video_path, f"Video pronto [{lang}]!\n\nTema: {tem
+        enviar_telegram_video(video_path, f"
+        pronto [{lang}]!\n\nTema: {tema}\n\nResponda SIM para aprovar ou NAO para rejeitar.")
+        log.info("Pipeline concluido!")
+    except Exception as e:
+        log.error(f"Erro: {e}")
+        enviar_telegram(f"Erro no pipeline [{lang}]: {e}")
+
+if __name__ == "__main__":
+    for lang in ["PT", "EN"]:
+        rodar_pipeline(lang)
+        time.sleep(10)Video pronto [{lang}]!\n\nTema: {tem
