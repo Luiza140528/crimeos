@@ -5,6 +5,7 @@ import logging
 import requests
 import subprocess
 from pathlib import Path
+from gtts import gTTS
 import imageio_ffmpeg
 
 ffmpeg_path = imageio_ffmpeg.get_ffmpeg_exe()
@@ -13,12 +14,9 @@ log = logging.getLogger("CrimeOS")
 
 CONFIG = {
     "ANTHROPIC_API_KEY": os.getenv("ANTHROPIC_API_KEY", ""),
-    "ELEVENLABS_API_KEY": os.getenv("ELEVENLABS_API_KEY", ""),
     "FAL_API_KEY": os.getenv("FAL_API_KEY", ""),
     "TELEGRAM_BOT_TOKEN": os.getenv("TELEGRAM_BOT_TOKEN", ""),
     "TELEGRAM_CHAT_ID": os.getenv("TELEGRAM_CHAT_ID", ""),
-    "VOICE_ID_PT": os.getenv("VOICE_ID_PT", "pNInz6obpgDQGcFmaJgB"),
-    "VOICE_ID_EN": os.getenv("VOICE_ID_EN", "EXAVITQu4vr4xnSDxMaL"),
 }
 
 TEMAS_PT = [
@@ -52,17 +50,9 @@ def gerar_roteiro(tema, lang="PT"):
 
 def gerar_narracao(texto, lang, output_path):
     log.info("[2/4] Gerando narracao")
-    voice_id = CONFIG["VOICE_ID_PT"] if lang == "PT" else CONFIG["VOICE_ID_EN"]
-    resp = requests.post(
-        "https://api.elevenlabs.io/v1/text-to-speech/" + voice_id,
-        headers={"xi-api-key": CONFIG["ELEVENLABS_API_KEY"], "Content-Type": "application/json"},
-        json={"text": texto, "model_id": "eleven_multilingual_v2", "voice_settings": {"stability": 0.5, "similarity_boost": 0.8}},
-        timeout=60,
-    )
-    log.info("ElevenLabs status: " + str(resp.status_code))
-    if resp.status_code != 200:
-        raise Exception("ElevenLabs erro: " + resp.text[:200])
-    Path(output_path).write_bytes(resp.content)
+    lang_code = "pt" if lang == "PT" else "en"
+    tts = gTTS(text=texto, lang=lang_code)
+    tts.save(output_path)
     log.info("Narracao salva!")
     return output_path
 
@@ -138,8 +128,9 @@ def rodar(lang="PT"):
     except Exception as e:
         log.error("Erro: " + str(e))
         enviar_msg("Erro " + lang + ": " + str(e))
+
 if __name__ == "__main__":
     while True:
         rodar("PT")
         rodar("EN")
-        time.sleep(3600)  # roda a cada 1 hora
+        time.sleep(3600)
