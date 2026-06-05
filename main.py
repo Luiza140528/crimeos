@@ -1,23 +1,15 @@
-import os
-import requests
-import time
-from robot import rodar
+from robot import processar_video
+import random
 
-TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
-CHAT = os.getenv("TELEGRAM_CHAT_ID", "")
+temas_pt = [
+    "A mulher que fingiu a propria morte para escapar",
+    "O desaparecimento no elevador que nunca foi explicado",
+]
 
-requests.post(
-    "https://api.telegram.org/bot" + TOKEN + "/sendMessage",
-    json={"chat_id": CHAT, "text": "Robo iniciando..."},
-    timeout=15,
-)
+temas_en = [
+    "The man who vanished without a trace for 20 years",
+    "The unsolved murder that changed a small town",
+]
 
-rodar("PT")
-time.sleep(10)
-rodar("EN")
-
-requests.post(
-    "https://api.telegram.org/bot" + TOKEN + "/sendMessage",
-    json={"chat_id": CHAT, "text": "Robo finalizado!"},
-    timeout=15,
-)
+processar_video("pt", random.choice(temas_pt))
+processar_video("en", random.choice(temas_en))
