@@ -6,7 +6,6 @@ import requests
 import logging
 import time
 import re
-from datetime import datetime
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -138,7 +137,7 @@ def processar_video(idioma, tema):
         logger.info("Iniciando " + idioma.upper() + ": " + tema)
         roteiro = gerar_roteiro(tema, idioma)
         blocos = extrair_blocos(roteiro)
-        texto_audio = " ".join(blocos)
+        texto_audio = re.sub(r'\[CENA \d+\]', '', " ".join(blocos)).strip()
         audio_path = asyncio.run(gerar_audio_edge(texto_audio, idioma))
         imagens = []
         for i, bloco in enumerate(blocos):
